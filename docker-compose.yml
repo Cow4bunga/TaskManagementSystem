@@ -1,0 +1,35 @@
+version: '3.8'
+
+networks:
+  task-system-network:
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: system-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: management-system-db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storage/postgresql:/var/lib/postgresql
+    networks:
+      - task-system-network
+  task-management-system:
+    image: task-management-system
+    container_name: task-management-system
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/management-system-db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+#      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+    networks:
+      - task-system-network
