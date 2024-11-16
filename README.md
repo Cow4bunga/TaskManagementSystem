@@ -1,4 +1,4 @@
-# Fulfillment center service
+# Task management system
 Тестовое задание в Effective Mobile.
 ## Get started
 Здесь описана последовательность действий для запуска приложения в Docker-контейнере, а также базовые операции, предоставляемые сервисом.
