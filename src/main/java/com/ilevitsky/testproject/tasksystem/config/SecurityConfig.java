@@ -1,8 +1,10 @@
 package com.ilevitsky.testproject.tasksystem.config;
 
+import com.ilevitsky.testproject.tasksystem.entity.auth.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,7 +20,12 @@ public class SecurityConfig {
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final AppConfig appConfig;
 
-  private static final String[] AUTH_WHITELIST = {"/auth/login", "/auth/register"};
+  private static final String ADMIN = Role.ADMIN.name();
+  private static final String USER = Role.USER.name();
+
+  private static final String[] WHITELIST = {
+    "/auth/login", "/auth/register", "/api-docs", "/swagger-ui/index.html"
+  };
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -26,10 +33,12 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             request ->
                 request
-                    .requestMatchers(AUTH_WHITELIST)
+                    .requestMatchers(WHITELIST)
                     .permitAll()
                     .requestMatchers("/tasks/**")
-                    .permitAll()
+                    .hasAnyAuthority(ADMIN, USER)
+                    .requestMatchers("/users/**")
+                    .hasAuthority(ADMIN)
                     .anyRequest()
                     .authenticated())
         .exceptionHandling(

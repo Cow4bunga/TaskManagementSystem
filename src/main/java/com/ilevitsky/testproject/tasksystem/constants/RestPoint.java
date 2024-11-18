@@ -7,4 +7,5 @@ import lombok.NoArgsConstructor;
 public class RestPoint {
   public static final String TASK = "/tasks";
   public static final String AUTH = "/auth";
+  public static final String USER = "/users";
 }

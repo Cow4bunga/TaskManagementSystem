@@ -1,5 +1,6 @@
 package com.ilevitsky.testproject.tasksystem.entity.auth;
 
+import com.ilevitsky.testproject.tasksystem.entity.Task;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,9 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -36,6 +35,12 @@ public class User implements UserDetails {
 
   @Enumerated(EnumType.STRING)
   private Role role;
+
+  @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private Set<Task> createdTasks = new HashSet<>();
+
+  @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private Set<Task> assignedTasks = new HashSet<>();
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

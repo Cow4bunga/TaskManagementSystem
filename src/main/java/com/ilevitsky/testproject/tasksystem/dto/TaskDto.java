@@ -24,4 +24,8 @@ public class TaskDto {
   private String priority;
 
   private Set<String> comments;
+
+  private UserDto assignee;
+
+  private UserDto creator;
 }

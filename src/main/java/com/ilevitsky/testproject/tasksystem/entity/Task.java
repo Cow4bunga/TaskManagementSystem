@@ -1,5 +1,6 @@
 package com.ilevitsky.testproject.tasksystem.entity;
 
+import com.ilevitsky.testproject.tasksystem.entity.auth.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -44,4 +45,12 @@ public class Task {
   @CollectionTable(name = "task_comments", joinColumns = @JoinColumn(name = "task_id"))
   @Column(name = "comment")
   private Set<String> comments;
+
+  @ManyToOne
+  @JoinColumn(name = "creator_id", nullable = false)
+  private User creator;
+
+  @ManyToOne
+  @JoinColumn(name = "assignee_id")
+  private User assignee;
 }

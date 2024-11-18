@@ -9,4 +9,6 @@ public interface AuthenticationService {
   User register(SignupRequest registerRequest);
 
   JwtResponse login(LoginRequest loginRequest);
+
+  User registerAdmin(SignupRequest signupRequest);
 }

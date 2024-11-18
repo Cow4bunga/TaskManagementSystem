@@ -49,4 +49,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     jwtAuthenticationResponse.setAccessToken(jwt);
     return jwtAuthenticationResponse;
   }
+
+  @Override
+  public User registerAdmin(SignupRequest signupRequest) {
+    User user = new User();
+
+    user.setEmail(signupRequest.getEmail());
+    user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+    user.setRole(Role.ADMIN);
+
+    return userRepository.save(user);
+  }
 }

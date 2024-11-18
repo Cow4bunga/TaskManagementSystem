@@ -18,5 +18,5 @@ springdoc:
     path: /api-docs
 security:
   jwt:
-    key: # your secret here
+    key:
     exp: 7000000

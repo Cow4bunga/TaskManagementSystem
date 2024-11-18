@@ -13,8 +13,8 @@
 ### Документация
 Документация API для проекта будет доступна по следующему URL: 
 
-`http://localhost:8083/api-docs`
+`http://localhost:8083/api/v1/api-docs`
 
 Swagger UI доступен по URL:
 
-`http://localhost:8083/swagger-ui/index.html`
+`http://localhost:8083/api/v1/swagger-ui/index.html`
