@@ -11,6 +11,16 @@ spring:
     schemas: public
 server:
   port: 8083
+  servlet:
+    context-path: /api/v1
 springdoc:
   api-docs:
     path: /api-docs
+security:
+  jwt:
+    key: # your secret here
+    exp: 7000000
+
+logging:
+  level:
+    org.springframework.security: TRACE

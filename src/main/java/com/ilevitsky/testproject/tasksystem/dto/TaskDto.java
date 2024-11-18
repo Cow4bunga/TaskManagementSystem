@@ -1,7 +1,5 @@
 package com.ilevitsky.testproject.tasksystem.dto;
 
-import com.ilevitsky.testproject.tasksystem.entity.TaskPriority;
-import com.ilevitsky.testproject.tasksystem.entity.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,9 +19,9 @@ public class TaskDto {
 
   private String description;
 
-  private TaskStatus status;
+  private String status;
 
-  private TaskPriority priority;
+  private String priority;
 
   private Set<String> comments;
 }
