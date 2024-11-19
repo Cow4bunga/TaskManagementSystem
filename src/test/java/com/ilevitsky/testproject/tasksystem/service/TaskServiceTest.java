@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.*;
 
@@ -123,24 +124,43 @@ class TaskServiceTest {
   @Test
   void getAll_ReturnsPagedResponse_WhenAdmin() {
     Pageable pageable = PageRequest.of(0, 10);
+    String assigneeEmail = "assignee@example.com";
+    String creatorEmail = "admin@example.com";
+    String status = "PENDING";
+    String priority = "MEDIUM";
+
     List<Task> tasks = List.of(task);
     Page<Task> page = new PageImpl<>(tasks, pageable, tasks.size());
 
     when(authUtil.isAdmin()).thenReturn(true);
-    when(taskRepository.findAll(pageable)).thenReturn(page);
+    when(taskRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
     when(taskMapper.mapToDto(task)).thenReturn(taskDto);
 
-    var result = taskService.getAll(pageable);
+    var result = taskService.getAll(pageable, assigneeEmail, creatorEmail, status, priority);
 
     assertEquals(1, result.getContentList().size());
-    assertEquals(taskDto, result.getContentList().getFirst());
-    verify(taskRepository).findAll(pageable);
+    assertEquals(taskDto, result.getContentList().get(0));
+    assertEquals(0, result.getPage().getPageNo());
+    assertEquals(10, result.getPage().getPageSize());
+    assertEquals(1, result.getPage().getTotalElements());
+    assertEquals(1, result.getPage().getTotalPages());
+    assertTrue(result.getPage().isLast());
+
+    verify(taskRepository).findAll(any(Specification.class), eq(pageable));
   }
 
   @Test
   void getAll_ThrowsException_WhenNotAdmin() {
     when(authUtil.isAdmin()).thenReturn(false);
-    assertThrows(OperationDeniedException.class, () -> taskService.getAll(PageRequest.of(0, 10)));
+    String assigneeEmail = "assignee@example.com";
+    String creatorEmail = "admin@example.com";
+    String status = "PENDING";
+    String priority = "MEDIUM";
+    assertThrows(
+        OperationDeniedException.class,
+        () ->
+            taskService.getAll(
+                PageRequest.of(0, 10), assigneeEmail, creatorEmail, status, priority));
   }
 
   @Test

@@ -8,7 +8,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface TaskService {
-  PagedResponse<TaskDto> getAll(Pageable pageable);
+  PagedResponse<TaskDto> getAll(
+      Pageable pageable, String assignee, String creator, String status, String priority);
 
   TaskDto getById(UUID id);
 

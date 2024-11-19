@@ -5,6 +5,7 @@ import com.ilevitsky.testproject.tasksystem.dto.TaskDto;
 import com.ilevitsky.testproject.tasksystem.dto.paging.PageInfo;
 import com.ilevitsky.testproject.tasksystem.dto.paging.PagedResponse;
 import com.ilevitsky.testproject.tasksystem.entity.Task;
+import com.ilevitsky.testproject.tasksystem.entity.TaskPriority;
 import com.ilevitsky.testproject.tasksystem.entity.TaskStatus;
 import com.ilevitsky.testproject.tasksystem.exception.OperationDeniedException;
 import com.ilevitsky.testproject.tasksystem.exception.TaskNotFoundException;
@@ -13,14 +14,17 @@ import com.ilevitsky.testproject.tasksystem.mapper.UserMapper;
 import com.ilevitsky.testproject.tasksystem.repository.TaskRepository;
 import com.ilevitsky.testproject.tasksystem.repository.UserRepository;
 import com.ilevitsky.testproject.tasksystem.service.TaskService;
+import com.ilevitsky.testproject.tasksystem.spec.TaskSpecificationBuilder;
 import com.ilevitsky.testproject.tasksystem.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -35,9 +39,27 @@ public class TaskServiceImpl implements TaskService {
   private final AuthUtil authUtil;
 
   @Override
-  public PagedResponse<TaskDto> getAll(Pageable pageable) {
+  public PagedResponse<TaskDto> getAll(
+      Pageable pageable, String assignee, String creator, String status, String priority) {
     if (authUtil.isAdmin()) {
-      Page<Task> page = taskRepository.findAll(pageable);
+      var specBuilder = new TaskSpecificationBuilder();
+
+      if (!Objects.isNull(assignee)) {
+        specBuilder.assignedTo(assignee);
+      }
+      if (!Objects.isNull(creator)) {
+        specBuilder.createdBy(creator);
+      }
+      if (!Objects.isNull(status)) {
+        specBuilder.byStatus(TaskStatus.valueOf(status.toUpperCase()));
+      }
+      if (!Objects.isNull(priority)) {
+        specBuilder.byPriority(TaskPriority.valueOf(priority.toUpperCase()));
+      }
+
+      var spec = specBuilder.build();
+
+      Page<Task> page = taskRepository.findAll(spec, pageable);
 
       return new PagedResponse<>(
           page.getContent().stream().map(taskMapper::mapToDto).toList(),
@@ -47,9 +69,11 @@ public class TaskServiceImpl implements TaskService {
               page.getTotalElements(),
               page.getTotalPages(),
               page.isLast()));
-    } else
+    } else {
+      log.error("Get all tasks: Access denied for {}", authUtil.getCurrentUserEmail());
       throw new OperationDeniedException(
           "Forbidden operation for current user! Must be admin to get all tasks.");
+    }
   }
 
   @Override
@@ -60,9 +84,11 @@ public class TaskServiceImpl implements TaskService {
             .orElseThrow(() -> new TaskNotFoundException(String.format("No task with id %s", id)));
     if (authUtil.isAdmin() || authUtil.isSameUser(task.getAssignee().getEmail())) {
       return taskMapper.mapToDto(task);
-    } else
+    } else {
+      log.error("Get task: Access denied for {}", authUtil.getCurrentUserEmail());
       throw new OperationDeniedException(
           "Forbidden operation for current user! Must be admin or task assignee to view task.");
+    }
   }
 
   @Override
@@ -84,9 +110,11 @@ public class TaskServiceImpl implements TaskService {
       dto.setAssignee(userMapper.mapToDto(assignee));
 
       return mapAndSave(dto);
-    } else
+    } else {
+      log.error("Create: Access denied for {}", authUtil.getCurrentUserEmail());
       throw new OperationDeniedException(
           "Forbidden operation for current user! Must be admin to create tasks.");
+    }
   }
 
   @Override
@@ -119,9 +147,11 @@ public class TaskServiceImpl implements TaskService {
   public void delete(UUID id) {
     if (authUtil.isAdmin()) {
       taskRepository.deleteById(id);
-    } else
+    } else {
+      log.error("Delete: Access denied for {}", authUtil.getCurrentUserEmail());
       throw new OperationDeniedException(
           "Forbidden operation for current user! Must be admin to delete tasks.");
+    }
   }
 
   @Override
@@ -137,9 +167,11 @@ public class TaskServiceImpl implements TaskService {
       task.setComments(comments);
 
       return taskMapper.mapToDto(taskRepository.save(task));
-    } else
+    } else {
+      log.error("Add comment: Access denied for {}", authUtil.getCurrentUserEmail());
       throw new OperationDeniedException(
           "Forbidden operation for current user. Must be admin or task assignee to add comments.");
+    }
   }
 
   private TaskDto mapAndSave(TaskDto dto) {

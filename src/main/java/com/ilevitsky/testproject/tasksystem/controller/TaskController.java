@@ -36,9 +36,13 @@ public class TaskController {
     @ApiResponse(responseCode = "400", description = "Request failure"),
   })
   public ResponseEntity<PagedResponse<TaskDto>> getAll(
-      @PageableDefault(size = 10, sort = "title", direction = Sort.Direction.ASC)
-          Pageable pageable) {
-    return new ResponseEntity<>(taskService.getAll(pageable), HttpStatus.OK);
+      @PageableDefault(size = 10, sort = "title", direction = Sort.Direction.ASC) Pageable pageable,
+      @RequestParam(required = false) String assignee,
+      @RequestParam(required = false) String creator,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) String priority) {
+    return new ResponseEntity<>(
+        taskService.getAll(pageable, assignee, creator, status, priority), HttpStatus.OK);
   }
 
   @GetMapping("/{id}")
@@ -97,6 +101,6 @@ public class TaskController {
   })
   public ResponseEntity<TaskDto> updateById(
       @PathVariable(name = "id") UUID taskId, @RequestBody CommentDto comment) {
-    return new ResponseEntity<>(taskService.addComment(taskId,comment), HttpStatus.OK);
+    return new ResponseEntity<>(taskService.addComment(taskId, comment), HttpStatus.OK);
   }
 }
