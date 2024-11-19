@@ -6,9 +6,12 @@ import com.ilevitsky.testproject.tasksystem.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+
+/**
+ * Contains scripts to initialize users
+ */
 @Component
 @RequiredArgsConstructor
 public class UserInitializer implements ApplicationListener<ApplicationReadyEvent> {
@@ -17,9 +20,6 @@ public class UserInitializer implements ApplicationListener<ApplicationReadyEven
   private final AuthenticationService authenticationService;
 
   private final TaskInitializer taskInitializer;
-
-  private final JdbcTemplate jdbcTemplate;
-
   @Override
   public void onApplicationEvent(ApplicationReadyEvent event) {
     createUsers();
@@ -27,7 +27,6 @@ public class UserInitializer implements ApplicationListener<ApplicationReadyEven
   }
 
   private void createUsers() {
-    jdbcTemplate.execute("TRUNCATE TABLE public.users CASCADE");
     String[] adminEmails = {"admin1@gmail.com", "admin2@gmail.com", "admin3@gmail.com"};
 
     for (String email : adminEmails) {

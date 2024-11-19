@@ -4,7 +4,6 @@ import com.ilevitsky.testproject.tasksystem.entity.auth.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,7 +23,7 @@ public class SecurityConfig {
   private static final String USER = Role.USER.name();
 
   private static final String[] WHITELIST = {
-    "/auth/login", "/auth/register", "/api-docs", "/swagger-ui/index.html"
+    "/auth/login", "/auth/register", "/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
   };
 
   @Bean

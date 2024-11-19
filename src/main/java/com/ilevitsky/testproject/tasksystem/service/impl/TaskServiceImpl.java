@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +40,9 @@ public class TaskServiceImpl implements TaskService {
   @Override
   public PagedResponse<TaskDto> getAll(
       Pageable pageable, String assignee, String creator, String status, String priority) {
-    if (authUtil.isAdmin()) {
+    if (authUtil.isAdmin()
+        || (!Objects.isNull(assignee)
+            && authUtil.getCurrentUserEmail().equals(assignee))) {
       var specBuilder = new TaskSpecificationBuilder();
 
       if (!Objects.isNull(assignee)) {
