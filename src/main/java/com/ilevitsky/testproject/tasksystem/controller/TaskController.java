@@ -37,8 +37,8 @@ public class TaskController {
   })
   public ResponseEntity<PagedResponse<TaskDto>> getAll(
       @PageableDefault(size = 10, sort = "title", direction = Sort.Direction.ASC) Pageable pageable,
-      @RequestParam(required = false) String assignee,
-      @RequestParam(required = false) String creator,
+      @RequestParam(required = false) UUID assignee,
+      @RequestParam(required = false) UUID creator,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) String priority) {
     return new ResponseEntity<>(

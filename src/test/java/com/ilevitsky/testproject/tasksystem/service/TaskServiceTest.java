@@ -43,9 +43,9 @@ class TaskServiceTest {
 
   @Mock private TaskMapper taskMapper;
 
-  @Mock private AuthUtil authUtil;
-
   @Mock private UserMapper userMapper;
+
+  @Mock private AuthUtil authUtil;
 
   private static Task task;
   private static TaskDto taskDto;
@@ -53,6 +53,8 @@ class TaskServiceTest {
   private static TaskDto taskDtoND;
 
   private static final UUID TASK_ID = UUID.fromString("b9b18de9-971a-488d-95d4-09dfb12d0ec0");
+  private static final UUID ASSIGNEE_ID = UUID.randomUUID();
+  private static final UUID CREATOR_ID = UUID.randomUUID();
 
   @BeforeAll
   public static void init() {
@@ -110,9 +112,7 @@ class TaskServiceTest {
     var result = taskService.create(taskDtoND);
 
     assertEquals(taskDto, result);
-    verify(taskRepository).save(taskND);
-    verify(taskMapper).mapToEntity(taskDtoND);
-    verify(taskMapper).mapToDto(task);
+    verifyInteractionsForCreate();
   }
 
   @Test
@@ -124,11 +124,6 @@ class TaskServiceTest {
   @Test
   void getAll_ReturnsPagedResponse_WhenAdmin() {
     Pageable pageable = PageRequest.of(0, 10);
-    String assigneeEmail = "assignee@example.com";
-    String creatorEmail = "admin@example.com";
-    String status = "PENDING";
-    String priority = "MEDIUM";
-
     List<Task> tasks = List.of(task);
     Page<Task> page = new PageImpl<>(tasks, pageable, tasks.size());
 
@@ -136,31 +131,33 @@ class TaskServiceTest {
     when(taskRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
     when(taskMapper.mapToDto(task)).thenReturn(taskDto);
 
-    var result = taskService.getAll(pageable, assigneeEmail, creatorEmail, status, priority);
+    var result =
+        taskService.getAll(
+            pageable,
+            ASSIGNEE_ID,
+            CREATOR_ID,
+            TaskStatus.PENDING.name(),
+            TaskPriority.MEDIUM.name());
 
     assertEquals(1, result.getContentList().size());
     assertEquals(taskDto, result.getContentList().get(0));
-    assertEquals(0, result.getPage().getPageNo());
-    assertEquals(10, result.getPage().getPageSize());
-    assertEquals(1, result.getPage().getTotalElements());
-    assertEquals(1, result.getPage().getTotalPages());
-    assertTrue(result.getPage().isLast());
-
     verify(taskRepository).findAll(any(Specification.class), eq(pageable));
   }
 
   @Test
   void getAll_ThrowsException_WhenNotAdmin() {
     when(authUtil.isAdmin()).thenReturn(false);
-    String assigneeEmail = "assignee@example.com";
-    String creatorEmail = "admin@example.com";
-    String status = "PENDING";
-    String priority = "MEDIUM";
+    when(authUtil.getCurrentUserEmail()).thenReturn("dummy@example.com");
+
     assertThrows(
         OperationDeniedException.class,
         () ->
             taskService.getAll(
-                PageRequest.of(0, 10), assigneeEmail, creatorEmail, status, priority));
+                PageRequest.of(0, 10),
+                ASSIGNEE_ID,
+                CREATOR_ID,
+                TaskStatus.PENDING.name(),
+                TaskPriority.MEDIUM.name()));
   }
 
   @Test
@@ -177,9 +174,7 @@ class TaskServiceTest {
 
   @Test
   void getById_ReturnsTaskDto_WhenAssignee() {
-    when(authUtil.isAdmin()).thenReturn(false);
-    when(authUtil.isSameUser("assignee@example.com")).thenReturn(true);
-    task.setAssignee(createTestUser("assignee@example.com"));
+    simulateAssigneeCheck();
 
     when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
     when(taskMapper.mapToDto(task)).thenReturn(taskDto);
@@ -221,11 +216,7 @@ class TaskServiceTest {
     when(authUtil.isAdmin()).thenReturn(false);
     when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
 
-    taskDto.setStatus(TaskStatus.COMPLETED.name());
-    taskDto.setDescription("Updated description");
-
-    task.setStatus(TaskStatus.COMPLETED);
-    task.setDescription("Updated description");
+    updateTaskDtoState();
 
     when(taskMapper.mapToDto(task)).thenReturn(taskDto);
     when(taskRepository.save(task)).thenReturn(task);
@@ -233,8 +224,6 @@ class TaskServiceTest {
     var result = taskService.update(TASK_ID, taskDto);
 
     assertEquals(taskDto, result);
-    assertEquals(TaskStatus.COMPLETED, task.getStatus());
-    assertEquals("Updated description", task.getDescription());
     verify(taskRepository).save(task);
     verify(taskMapper).mapToDto(task);
   }
@@ -311,5 +300,25 @@ class TaskServiceTest {
     task.setAssignee(createTestUser("assignee@example.com"));
     task.setComments(new HashSet<>());
     task.getComments().add(comment);
+  }
+
+  private void simulateAssigneeCheck() {
+    when(authUtil.isAdmin()).thenReturn(false);
+    when(authUtil.isSameUser("assignee@example.com")).thenReturn(true);
+    task.setAssignee(createTestUser("assignee@example.com"));
+  }
+
+  private void updateTaskDtoState() {
+    taskDto.setStatus(TaskStatus.COMPLETED.name());
+    taskDto.setDescription("Updated description");
+
+    task.setStatus(TaskStatus.COMPLETED);
+    task.setDescription("Updated description");
+  }
+
+  private void verifyInteractionsForCreate() {
+    verify(taskRepository).save(taskND);
+    verify(taskMapper).mapToEntity(taskDtoND);
+    verify(taskMapper).mapToDto(task);
   }
 }

@@ -7,6 +7,7 @@ import com.ilevitsky.testproject.tasksystem.dto.paging.PagedResponse;
 import com.ilevitsky.testproject.tasksystem.entity.Task;
 import com.ilevitsky.testproject.tasksystem.entity.TaskPriority;
 import com.ilevitsky.testproject.tasksystem.entity.TaskStatus;
+import com.ilevitsky.testproject.tasksystem.entity.auth.User;
 import com.ilevitsky.testproject.tasksystem.exception.OperationDeniedException;
 import com.ilevitsky.testproject.tasksystem.exception.TaskNotFoundException;
 import com.ilevitsky.testproject.tasksystem.mapper.TaskMapper;
@@ -39,10 +40,12 @@ public class TaskServiceImpl implements TaskService {
 
   @Override
   public PagedResponse<TaskDto> getAll(
-      Pageable pageable, String assignee, String creator, String status, String priority) {
+      Pageable pageable, UUID assignee, UUID creator, String status, String priority) {
     if (authUtil.isAdmin()
         || (!Objects.isNull(assignee)
-            && authUtil.getCurrentUserEmail().equals(assignee))) {
+            && authUtil
+                .getCurrentUserEmail()
+                .equals(userRepository.findById(assignee).orElse(new User()).getEmail()))) {
       var specBuilder = new TaskSpecificationBuilder();
 
       if (!Objects.isNull(assignee)) {

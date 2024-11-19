@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface TaskService {
   PagedResponse<TaskDto> getAll(
-      Pageable pageable, String assignee, String creator, String status, String priority);
+      Pageable pageable, UUID assignee, UUID creator, String status, String priority);
 
   TaskDto getById(UUID id);
 

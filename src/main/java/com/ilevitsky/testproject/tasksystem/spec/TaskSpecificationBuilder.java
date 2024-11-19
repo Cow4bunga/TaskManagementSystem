@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class TaskSpecificationBuilder {
   private final List<Specification<Task>> specs = new ArrayList<>();
@@ -21,13 +22,17 @@ public class TaskSpecificationBuilder {
     return this;
   }
 
-  public TaskSpecificationBuilder createdBy(String creator) {
-    specs.add((r, q, cB) -> cB.equal(r.join("creator").get("email").as(String.class), creator));
+  public TaskSpecificationBuilder createdBy(UUID creator) {
+    specs.add(
+        (r, q, cB) ->
+            cB.equal(r.join("creator").get("id").as(String.class), String.valueOf(creator)));
     return this;
   }
 
-  public TaskSpecificationBuilder assignedTo(String assignee) {
-    specs.add((r, q, cB) -> cB.equal(r.join("assignee").get("email").as(String.class), assignee));
+  public TaskSpecificationBuilder assignedTo(UUID assignee) {
+    specs.add(
+        (r, q, cB) ->
+            cB.equal(r.join("assignee").get("id").as(String.class), String.valueOf(assignee)));
     return this;
   }
 
